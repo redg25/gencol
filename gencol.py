@@ -16,16 +16,22 @@ class gencol():
         for f in subfolders:
             if re.search("^f\d{1,2}_",f.name):
                 pos =f.name.split('_')[0][1:]
+            else:
+                pos = 0
 
             feature = gencol.feature(f.name)
-            my_path = os.path.join(self.path, f[1])
-            images = [f for f in listdir(my_path) if isfile(join(my_path, f))]
-            self.all_images[f[1]] = images
+            feature.position(pos)
+            # my_path = os.path.join(self.path, f[1])
+            # images = [f for f in listdir(my_path) if isfile(join(my_path, f))]
+            # self.all_images[f[1]] = images
 
     class features():
 
         def __init__(self,name):
             self.name = name
+
+        def position(self,pos):
+            self.position =  pos
 print(os.getcwd())
 
 path = 'C:\\Users\\regis\\PycharmProjects\\gencol\\images'
