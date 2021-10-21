@@ -9,38 +9,40 @@ class gencol():
 
     def __init__(self,path):
         self.path = path
-        self.all_images = {}
+        self.all_features = []
 
     def get_content(self):
-        subfolders = [(f.path, f.name) for f in os.scandir(self.path) if f.is_dir()]
-        for f in subfolders:
-            if re.search("^f\d{1,2}_",f.name):
-                pos =f.name.split('_')[0][1:]
-            else:
-                pos = 0
+        self.all_features = [features(f.path,f.name) for f in os.scandir(self.path) if f.is_dir()]
+        for i, folder in enumerate(self.all_features):
+            folder.order = i+1
+            folder.project = self
 
-            feature = gencol.feature(f.name)
-            feature.position(pos)
-            # my_path = os.path.join(self.path, f[1])
-            # images = [f for f in listdir(my_path) if isfile(join(my_path, f))]
-            # self.all_images[f[1]] = images
 
-    class features():
 
-        def __init__(self,name):
-            self.name = name
 
-        def position(self,pos):
-            self.position =  pos
-print(os.getcwd())
 
-path = 'C:\\Users\\regis\\PycharmProjects\\gencol\\images'
+    def set_f_order(self,f_name,pos):
+        pass
 
-dic_images ={}
-subfolders =  [(f.path,f.name) for f in os.scandir(path) if f.is_dir() ]
-print(subfolders)
-for f in subfolders:
-    my_path = os.path.join(path, f[1])
-    onlyfiles = [f for f in listdir(my_path) if isfile(join(my_path, f))]
-    dic_images[f[1]] = onlyfiles
-print(dic_images)
+
+
+class features():
+
+    def __init__(self,name,path):
+        self.name = name
+        self.path = path
+        self.mandatory = True
+        self.order = None
+        self.project = None
+
+
+    def position(self,order):
+        self.order =  order
+
+
+
+test = gencol('C:\\Users\\regis\\PycharmProjects\\gencol\\images')
+test.get_content()
+print (test.all_features)
+for feature in test.all_features:
+    print(feature.name, feature.order)
