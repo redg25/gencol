@@ -1,4 +1,5 @@
 import os
+import json
 
 class gencol():
 
@@ -6,6 +7,7 @@ class gencol():
         self.path = path
         self.name = self.path.split('\\')[-1]
         self.all_features = {}
+        self.pjson = None
 
     def get_content(self):
         '''
@@ -25,6 +27,24 @@ class gencol():
             self.all_features[name].order = pos
         else:
             raise Exception(f"{name} is not a folder in {self.path}")
+
+
+    def get_json(self):
+        '''
+        Create a json object with the structure of the project and the attributes of each element.
+        :return:
+        '''
+        project_dict = {}
+        for key, value in self.all_features.items():
+            images = dict((x,{'path': y.path, 'rarity': y.rarity}) for x, y in value.all_images.items())
+            project_dict[key]={'path': value.path,
+                               'mandatory': value.mandatory,
+                               'position': value.order,
+                               'images': images}
+        self.pjson = json.dumps(project_dict, indent=4)
+
+
+
 
 class features():
 
@@ -64,22 +84,25 @@ class Image():
 
 test = gencol('C:\\Users\\regis\\PycharmProjects\\gencol\\images')
 test.get_content()
-print (test.all_features)
-# for feature in test.all_features:
-#     print(feature, test.all_features[feature].order)
-#test.feature_pos('backgrounds',2)
-# for feature in test.all_features.values():
-#     print (feature)
-#     # print(feature., test.all_features[feature].order)
-#     names = [x.name for x in feature.all_images.values()]
-#     print (f'{feature.name}: {names}')
-print (test.name)
-for feature,value in test.all_features.items():
-    print(f'{feature}:\n'
-          f'Mandatory is {value.mandatory}\n'
-          f'Order is {value.order}')
-    for image, v in value.all_images.items():
-        print(f'{image}:\n'
-              f'rarity is {v.rarity}')
-
+test.get_json()
+with open('test.json','w') as outfile:
+    outfile.write(test.pjson)
+# print (test.all_features)
+# # for feature in test.all_features:
+# #     print(feature, test.all_features[feature].order)
+# #test.feature_pos('backgrounds',2)
+# # for feature in test.all_features.values():
+# #     print (feature)
+# #     # print(feature., test.all_features[feature].order)
+# #     names = [x.name for x in feature.all_images.values()]
+# #     print (f'{feature.name}: {names}')
+# print (test.name)
+# for feature,value in test.all_features.items():
+#     print(f'{feature}:\n'
+#           f'Mandatory is {value.mandatory}\n'
+#           f'Order is {value.order}')
+#     for image, v in value.all_images.items():
+#         print(f'{image}:\n'
+#               f'rarity is {v.rarity}')
+#
 
