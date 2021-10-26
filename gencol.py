@@ -28,7 +28,16 @@ class Gencol:
 
     def feature_pos(self, name: str, pos: int):
         if name in self.all_features:
+            if self.all_features[name].order < pos:
+                for feature in self.all_features.values():
+                    if feature.name != name and feature.order <= pos and feature.order > self.all_features[name].order:
+                        feature.order -= 1
+            elif self.all_features[name].order > pos:
+                for feature in self.all_features.values():
+                    if feature.name != name and feature.order >= pos and feature.order < self.all_features[name].order:
+                        feature.order += 1
             self.all_features[name].order = pos
+
         else:
             raise Exception(f"{name} is not a folder in {self.path}")
 
@@ -69,7 +78,7 @@ class Feature:
 
     @order.setter
     def order(self, value):
-        if value < len(self.project.all_features):
+        if value < len(self.project.all_features)+1:
             self._order = value
         else:
             raise Exception(f"The position of the feature must be between "
@@ -91,16 +100,16 @@ class Image:
 
 test = Gencol('C:\\Users\\regis\\PycharmProjects\\gencol\\images')
 test.get_content()
-test.get_json()
-with open('test.json','w') as outfile:
-    outfile.write(test.pjson)
+#test.get_json()
+# with open('test.json','w') as outfile:
+#     outfile.write(test.pjson)
 # print (test.all_features)
-# # for feature in test.all_features:
-# #     print(feature, test.all_features[feature].order)
-# #test.feature_pos('backgrounds',2)
-# # for feature in test.all_features.values():
-# #     print (feature)
-# #     # print(feature., test.all_features[feature].order)
+for feature in test.all_features:
+    print(feature, test.all_features[feature].order)
+
+test.feature_pos('f2_mouths',2)
+for feature in test.all_features:
+    print(feature, test.all_features[feature].order)
 # #     names = [x.name for x in feature.all_images.values()]
 # #     print (f'{feature.name}: {names}')
 # print (test.name)
