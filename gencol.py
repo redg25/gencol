@@ -57,6 +57,14 @@ class Gencol:
             raise Exception(f"{name} is not a folder in {self.path}")
         return self
 
+    def mandatory(self, name: str, set: bool = True) -> Gencol:
+        """ Set the mandatory attribute to a feature
+        If set to True, the feature will appear in all generated images.
+        If set to False, the feature will appear randomly on generated images.
+        """
+        self.all_features[name].mandatory = set
+        return self
+
     def get_json(self) -> Gencol:
         """Create a json object with the structure of the project and the attributes of each element"""
         project_dict = {}
