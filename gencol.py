@@ -26,7 +26,7 @@ class Gencol:
 
         for i, folder in enumerate(self.all_features.values()):
             folder._position = i+1  # Set the feature.position based on system folder sorting
-            folder.all_images = dict((img.name, Image(img.name, img.path, folder))
+            folder.all_images = dict((img.name.split('.')[0], Image(img.name, img.path, folder))
                                      for img in os.scandir(folder.path) if not img.is_dir())
 
     def feature_pos(self, name: str, new_position: int) -> Gencol:
@@ -84,10 +84,20 @@ class Gencol:
 
         self.json = json.dumps(project_dict, indent=4)
 
+    def get_feature(self,feature: str) -> Feature:
+        """ Takes a feature name and returns its Feature object instance"""
+        feature = self.all_features[feature]
+        return feature
+
+
+    def get_image(self,feature:str, img_name:str) -> Image:
+        """ Takes a feature name and an image name, and returns its Image object instance"""
+        img = self.all_features[feature].all_images[img_name]
+        return img
 
 class Feature:
 
-    def __init__(self, name, path, project):
+    def __init__(self, name: str, path: str, project: Gencol):
         self.name = name
         self.path = path
         self.mandatory = True  # Is this feature required in all generated images?
@@ -102,8 +112,17 @@ class Feature:
 
     @position.setter
     def position(self, value: int):
+
         if value < len(self.project.all_features)+1:
             self._position = value
+            positions = [x.position for x in self.project.all_features.values()]
+            for feature in self.project.all_features.values():
+                if feature.name != self.name and feature.position == value:
+                    if Feature.find_empty_position(positions,self._position)>value:
+                        feature.position += 1
+                    elif Feature.find_empty_position(positions,self._position)<value:
+                        feature.position -= 1
+
         else:
             raise Exception(f"The position of the feature must be between "
                             f"the range of features: {len(self.project.all_features)}")
@@ -113,25 +132,38 @@ class Feature:
         print("Delete radius")
         del self._position
 
+    @staticmethod
+    def find_empty_position(positions:list[int],old_position:int)->int:
+        for i, x in enumerate(positions):
+            if i + 1 not in positions: return i + 1
+        return old_position
 
 class Image:
 
     def __init__(self, name, path, feature):
-        self.name = name
+        self.name, self._format = name.split('.')
         self.path = path
         self.rarity = 100
         self.feature = feature
 
-# test = Gencol('C:\\Users\\regis\\PycharmProjects\\gencol\\images')
-# test.get_content()
-# #test.get_json()
+    @property
+    def format(self):
+        """The format property."""
+        return self._format
+
+test = Gencol('C:\\Users\\regis\\PycharmProjects\\gencol\\images')
+test.get_content()
+img = test.get_feature('mouths')
+img.position = 1
+# print(img.format)
+# img.format = 'jpeg'
 # # with open('test.json','w') as outfile:
 # #     outfile.write(test.pjson)
 # # print (test.all_features)
 # for feature in test.all_features:
 #     print(feature, test.all_features[feature].position)
 #
-# test.feature_pos('f2_mouths',1)
+# test.feature_pos('mouths',1)
 # for feature in test.all_features:
 #     print(feature, test.all_features[feature].position)
 # # #     names = [x.name for x in feature.all_images.values()]
