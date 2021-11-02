@@ -1,5 +1,7 @@
 from __future__ import annotations
-
+from random import choices, randint
+from typing import Optional
+from PIL import Image as Img
 import os
 import json
 
@@ -17,6 +19,8 @@ class Gencol:
         # Represents all the sub folders in the project folder
         self.all_features = {}
         self.json = None
+        if not os.path.isdir('collection'):
+            os.mkdir('collection')
 
     def get_content(self) -> Gencol:
         """Creates features and Image object based on the path given in the Gencol object.
@@ -89,21 +93,70 @@ class Gencol:
         feature = self.all_features[feature]
         return feature
 
-
     def get_image(self,feature:str, img_name:str) -> Image:
         """ Takes a feature name and an image name, and returns its Image object instance"""
         img = self.all_features[feature].all_images[img_name]
         return img
+
+
+    def generate_collection(self, nb_to_generate: Optional[int] = None):
+
+        def calculate_max_number_of_images(project: Gencol):
+            max_features = [x for x in project.all_features.values() if x.rarity != 0]
+            total = 1
+            for feature in max_features:
+                max_nb_of_images = [x for x in feature.all_images.values() if x.rarity != 0]
+                total = total * len(max_nb_of_images)
+            return total
+
+        def use_of_feature(feature) -> bool:
+            return randint(1, 100) <= feature.rarity
+
+        if not nb_to_generate:
+            nb_to_generate = calculate_max_number_of_images(self)
+
+        for n in range(nb_to_generate):
+            while True:
+                background = None
+                compiled_image: list[str] = []
+                for feature in self.all_features.values():
+                    if use_of_feature(feature):
+                        img_choices = [x for x in feature.all_images.values()]
+                        img_weights = [x.rarity for x in img_choices]
+                        img = choices(img_choices, img_weights)[0]
+                        if feature.position == 1:
+                            background = Img.open(img.path)
+                            compiled_image.append(img.name)
+                        else:
+                            img_to_add = Img.open(img.path)
+                            compiled_image.append(img.name)
+                            background.paste(img_to_add, (0, 0), img_to_add)
+                filename = f'{"-".join(compiled_image)}.png'
+                if not os.path.isfile(f'collection/{filename}'):
+                    background.save(f'collection/{filename}')
+                    break
 
 class Feature:
 
     def __init__(self, name: str, path: str, project: Gencol):
         self.name = name
         self.path = path
-        self.mandatory = True  # Is this feature required in all generated images?
+        self.rarity = 100  # How likely to have this feature in the final generated image
         self._position = None  # position of the feature when overlaid with other features
         self.project = project
         self.all_images = {}
+
+    @property
+    def rarity(self):
+        """The rarity property."""
+        return self._rarity
+
+    @rarity.setter
+    def rarity(self, value: int):
+        if 0 <= value <= 100:
+            self._rarity = value
+        else:
+            raise ValueError('The rarity is an integer between 0 and 100 included')
 
     @property
     def position(self):
@@ -120,10 +173,11 @@ class Feature:
         If we call this method for the feature on 3rd position with a new position of 1.
         The feature which was on 1st position will move to 2nd, and the one on 2nd to 3rd.
         """
+
         if value < len(self.project.all_features)+1:
             self._position = value
             positions: list[int] = [feature.position for feature in self.project.all_features.values()]
-            old_position: int = Feature.find_empty_position(positions,self._position)
+            old_position: int = Feature.find_empty_position(positions, self._position)
             for feature in self.project.all_features.values():
                 if feature.name != self.name and feature.position == value:
                     if old_position>value:
