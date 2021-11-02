@@ -112,31 +112,40 @@ class Feature:
 
     @position.setter
     def position(self, value: int):
-
+        """Set new position of a feature
+        When a new position is set, the position of the feature which was originally
+        on the new position is moved by one towards the original position of the feature
+        for which the method has been called.
+        Ex: 4 features with positions, 1,2,3 and 4.
+        If we call this method for the feature on 3rd position with a new position of 1.
+        The feature which was on 1st position will move to 2nd, and the one on 2nd to 3rd.
+        """
         if value < len(self.project.all_features)+1:
             self._position = value
-            positions = [x.position for x in self.project.all_features.values()]
+            positions: list[int] = [feature.position for feature in self.project.all_features.values()]
+            old_position: int = Feature.find_empty_position(positions,self._position)
             for feature in self.project.all_features.values():
                 if feature.name != self.name and feature.position == value:
-                    if Feature.find_empty_position(positions,self._position)>value:
+                    if old_position>value:
                         feature.position += 1
-                    elif Feature.find_empty_position(positions,self._position)<value:
+                    elif old_position<value:
                         feature.position -= 1
 
         else:
             raise Exception(f"The position of the feature must be between "
                             f"the range of features: {len(self.project.all_features)}")
 
-    @position.deleter
-    def radius(self):
-        print("Delete radius")
-        del self._position
-
     @staticmethod
     def find_empty_position(positions:list[int],old_position:int)->int:
         for i, x in enumerate(positions):
             if i + 1 not in positions: return i + 1
         return old_position
+
+    def get_image(self, img_name:str) -> Image:
+        """ Takes an image name, and returns its Image object instance"""
+        img = self.all_images[img_name]
+        return img
+
 
 class Image:
 
@@ -151,15 +160,31 @@ class Image:
         """The format property."""
         return self._format
 
-test = Gencol('C:\\Users\\regis\\PycharmProjects\\gencol\\images')
-test.get_content()
-img = test.get_feature('mouths')
-img.position = 1
-# print(img.format)
-# img.format = 'jpeg'
-# # with open('test.json','w') as outfile:
-# #     outfile.write(test.pjson)
-# # print (test.all_features)
+    @property
+    def rarity(self):
+        """The rarity property."""
+        return self._rarity
+
+    @rarity.setter
+    def rarity(self, value: int):
+        if 0 <= value <= 100:
+            self._rarity = value
+        else:
+            raise ValueError('The rarity is an integer between 0 and 100 included')
+
+# test = Gencol('C:\\Users\\regis\\PycharmProjects\\gencol\\images')
+# test.get_content()
+# img = test.get_image('mouths','mouths1')
+# print(img.rarity)
+# img.rarity = 90
+# print(img.rarity)
+# test.get_json()
+# # img.position = 1
+# # print(img.format)
+# # img.format = 'jpeg'
+# with open('test.json','w') as outfile:
+#     outfile.write(test.json)
+
 # for feature in test.all_features:
 #     print(feature, test.all_features[feature].position)
 #
