@@ -6,7 +6,6 @@ import os
 import json
 
 
-
 class Gencol:
     """Class representing a collection generator project.
     Params:
@@ -97,33 +96,38 @@ class Gencol:
         """ Takes a feature name and an image name, and returns its Image object instance"""
         img = self.all_features[feature].all_images[img_name]
         return img
+    def max_images(self) -> int:
+        max_features = [x for x in self.all_features.values() if x.rarity != 0]
+        total = 1
+        for feature in max_features:
+            max_nb_of_images = [x for x in feature.all_images.values() if x.rarity != 0]
+            if feature.rarity != 100:
+                total = total * (len(max_nb_of_images)+1)
+            else:
+                total = total * len(max_nb_of_images)
 
+        return total
 
     def generate_collection(self, nb_to_generate: Optional[int] = None):
-
-        def calculate_max_number_of_images(project: Gencol):
-            max_features = [x for x in project.all_features.values() if x.rarity != 0]
-            total = 1
-            for feature in max_features:
-                max_nb_of_images = [x for x in feature.all_images.values() if x.rarity != 0]
-                total = total * len(max_nb_of_images)
-            return total
 
         def use_of_feature(feature) -> bool:
             return randint(1, 100) <= feature.rarity
 
+        def get_random_image(images: dict) -> Image:
+            img_choices = [x for x in images.values()]
+            img_weights = [x.rarity for x in img_choices]
+            return choices(img_choices, img_weights)[0]
+
         if not nb_to_generate:
-            nb_to_generate = calculate_max_number_of_images(self)
+            nb_to_generate = Gencol.max_images(self)
 
         for n in range(nb_to_generate):
             while True:
-                background = None
+                background: Optional[Img] = None
                 compiled_image: list[str] = []
                 for feature in self.all_features.values():
                     if use_of_feature(feature):
-                        img_choices = [x for x in feature.all_images.values()]
-                        img_weights = [x.rarity for x in img_choices]
-                        img = choices(img_choices, img_weights)[0]
+                        img = get_random_image(feature.all_images)
                         if feature.position == 1:
                             background = Img.open(img.path)
                             compiled_image.append(img.name)
@@ -135,6 +139,7 @@ class Gencol:
                 if not os.path.isfile(f'collection/{filename}'):
                     background.save(f'collection/{filename}')
                     break
+
 
 class Feature:
 
@@ -226,34 +231,6 @@ class Image:
         else:
             raise ValueError('The rarity is an integer between 0 and 100 included')
 
-# test = Gencol('C:\\Users\\regis\\PycharmProjects\\gencol\\images')
-# test.get_content()
-# img = test.get_image('mouths','mouths1')
-# print(img.rarity)
-# img.rarity = 90
-# print(img.rarity)
-# test.get_json()
-# # img.position = 1
-# # print(img.format)
-# # img.format = 'jpeg'
-# with open('test.json','w') as outfile:
-#     outfile.write(test.json)
 
-# for feature in test.all_features:
-#     print(feature, test.all_features[feature].position)
-#
-# test.feature_pos('mouths',1)
-# for feature in test.all_features:
-#     print(feature, test.all_features[feature].position)
-# # #     names = [x.name for x in feature.all_images.values()]
-# # #     print (f'{feature.name}: {names}')
-# # print (test.name)
-# # for feature,value in test.all_features.items():
-# #     print(f'{feature}:\n'
-# #           f'Mandatory is {value.mandatory}\n'
-# #           f'position is {value.position}')
-# #     for image, v in value.all_images.items():
-# #         print(f'{image}:\n'
-# #               f'rarity is {v.rarity}')
-#
+
 
