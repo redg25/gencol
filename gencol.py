@@ -32,42 +32,6 @@ class Gencol:
             folder.all_images = dict((img.name.split('.')[0], Image(img.name, img.path, folder))
                                      for img in os.scandir(folder.path) if not img.is_dir())
 
-    def feature_pos(self, name: str, new_position: int) -> Gencol:
-        """
-        Changes the layer on which the feature will be displayed on the final image.
-        Other features positions are changed to ensure that none have the same position.
-        :param name: The name of the feature
-        :param new_position: The layer position of the feature on a full generated image.
-        :return: self
-        """
-        if name in self.all_features:
-            # Check if new position is after current position.
-            if self.all_features[name].position < new_position:
-                for feat in self.all_features.values():
-                    # Check what other feature are impacted and move their position down by 1
-                    if feat.name != name and new_position >= feat.position > self.all_features[name].position:
-                        feat.position -= 1
-            # Check if new position is before current position.
-            elif self.all_features[name].position > new_position:
-                for feat in self.all_features.values():
-                    # Check what other feature are impacted and move their position up by 1
-                    if feat.name != name and new_position <= feat.position < self.all_features[name].position:
-                        feat.position += 1
-            # Set new position of the feature
-            self.all_features[name].position = new_position
-
-        else:
-            raise Exception(f"{name} is not a folder in {self.path}")
-        return self
-
-    def mandatory(self, name: str, set: bool = True) -> Gencol:
-        """ Set the mandatory attribute to a feature
-        If set to True, the feature will appear in all generated images.
-        If set to False, the feature will appear randomly on generated images.
-        """
-        self.all_features[name].mandatory = set
-        return self
-
     def get_json(self) -> Gencol:
         """Create a json object with the structure of the project and the attributes of each element"""
         project_dict = {}
@@ -81,7 +45,7 @@ class Gencol:
             # and its attributes as a dictionary for values.
             # The value for the images attribute is the "images" dictionary
             project_dict[name] = {'path': feature_instance.path,
-                                  'mandatory': feature_instance.mandatory,
+                                  'rarity': feature_instance.rarity,
                                   'position': feature_instance.position,
                                   'images': images}
 
@@ -113,7 +77,6 @@ class Gencol:
                 total = total * (len(max_nb_of_images)+1)
             else:
                 total = total * len(max_nb_of_images)
-
         return total
 
     def generate_collection(self, nb_to_generate: Optional[int] = None):
