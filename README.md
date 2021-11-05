@@ -16,13 +16,13 @@ After this all features and the images they contain are converted into Feature a
 
 You can access a Feature with
 ```
-f1 = mycol.get_feature('feature name') 
+f1 = mycol.get_feature('feature name') # You can use '**eyes**' with the demo sample
 ```
 
 and an Image with
 ```
-img1 = mycol.get_image('name of feature','name of image')
-img2 = f1.get_image('name of image')
+img1 = mycol.get_image('name of feature','name of image') You can use '**eyes**' and '**eyes1**' with the demo sample
+img2 = f1.get_image('name of image') # You can use '**eyes1**' with the demo sample
 ```
 
 By default, all features and images have rarity set to 100 which means all possible scenarios will be generated.
@@ -33,7 +33,9 @@ f1.rarity = 80  # the feature will be generated 80% of the time
 img1.rarity = 20  # When chosing an image randomly the rarity will be weighted against other image rarities
 ```
 
-The order in which the feature are generated is originally set by your system but you can change it with
+The order in which the feature are generated is originally set by your system, for exampe if you want hats to be over the main face
+then hats position should be at least one positon higher than the main face. 
+You can change it with
 ```
 f1.position = 5
 ```
