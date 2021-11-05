@@ -96,7 +96,15 @@ class Gencol:
         """ Takes a feature name and an image name, and returns its Image object instance"""
         img = self.all_features[feature].all_images[img_name]
         return img
+
     def max_images(self) -> int:
+        """ Calculate the maximum number of images that can be generated based on rarity of features
+        and images
+        If a feature has a rarity different from 0 or 100, it means that there can be generated full images
+        with all the images of the feature and with none of them.
+
+        :return: total:int
+        """
         max_features = [x for x in self.all_features.values() if x.rarity != 0]
         total = 1
         for feature in max_features:
@@ -109,23 +117,33 @@ class Gencol:
         return total
 
     def generate_collection(self, nb_to_generate: Optional[int] = None):
+        """Generate the collection of images"""
 
-        def use_of_feature(feature) -> bool:
+        def use_of_feature(feature: Feature) -> bool:
+            """Calculate if a feature has to be used based on its rarity"""
             return randint(1, 100) <= feature.rarity
 
         def get_random_image(images: dict) -> Image:
-            img_choices = [x for x in images.values()]
-            img_weights = [x.rarity for x in img_choices]
+            """Get a random image from the list of possible images"""
+            img_choices = [img for img in images.values()]
+            img_weights = [img.rarity for img in img_choices]
             return choices(img_choices, img_weights)[0]
+
+        def order_features_by_position(project:Gencol) -> list[Gencol]:
+            """Order the features by their position parameter"""
+            lst = [feature for feature in project.all_features.values()]
+            lst.sort(key=lambda x: x.position)
+            return lst
 
         if not nb_to_generate:
             nb_to_generate = Gencol.max_images(self)
 
         for n in range(nb_to_generate):
             while True:
-                background: Optional[Img] = None
+                background: Optional[Img] = None  # Background image to receive the next layer of image(s)
+                # List of the different image names included in the image being generated
                 compiled_image: list[str] = []
-                for feature in self.all_features.values():
+                for feature in order_features_by_position(self):
                     if use_of_feature(feature):
                         img = get_random_image(feature.all_images)
                         if feature.position == 1:
