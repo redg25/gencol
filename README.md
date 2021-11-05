@@ -60,3 +60,4 @@ Get a json of the structure of the project
 mycol.get_json()
 myjson = mycol.json
 ```
+**You can see all generated images from the demo in the collection folder**
